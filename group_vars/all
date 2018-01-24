@@ -1,0 +1,11 @@
+demo:
+  count: 1
+  image: ami-9a562df2
+  instance_type: t2.small
+  volume_size: 20
+  node_tags:
+    Name: DEV_DEMO
+    Environment: DEVELOPMENT
+    
+aws_region: us-east-1
+aws_zone: us-east-1a

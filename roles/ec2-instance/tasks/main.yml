@@ -1,0 +1,34 @@
+---
+#The instances property of each host variable will be non-empty only when a fresh instance is created
+#while the tagged_instances property will always be non-empty i.e.
+#instances = tagged_instances; on a fresh instance
+#instances = []; otherwise
+
+- name: Ensure dynamic IP file is absent
+  file: path="{{ansible_env.HOME}}/dynamic_ips_dev" state=absent
+
+- name: Create file dynamic_ips
+  file: path="{{ansible_env.HOME}}/dynamic_ips_dev" state=touch
+
+- name: Launch Demo Server Instance
+  ec2:
+    exact_count: "{{demo.count}}"
+    count_tag: "{{demo.node_tags}}"
+    image: "{{demo.image}}"
+    instance_tags: "{{demo.node_tags}}"
+    instance_type: "{{demo.instance_type}}"
+    region: "{{aws_region}}"
+    volumes:
+      - delete_on_termination: true
+        device_name: /dev/sda1
+        volume_size: "{{demo.volume_size}}"
+    wait: yes
+    zone: "{{aws_zone}}"
+  register: demo_server
+
+- name: Refresh EC2 cache
+  command: "{{playbook_dir}}/ec2.py --refresh-cache"
+  delegate_to: 127.0.0.1
+
+- name: Refresh in-memory EC2 Cache
+  meta: refresh_inventory
