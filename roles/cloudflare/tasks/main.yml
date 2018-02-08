@@ -1,0 +1,10 @@
+---
+- name: Configuring cloudflare settings for AWS Instance
+  cloudflare_dns:
+    zone: coincafe.com
+    type: A
+    value: "{{aws_instance.satoshi.private_ip}}"
+    ttl: 120
+    state: present
+    account_email: "{{cloudflare_email}}"
+    account_api_token: "{{cloudflare_api_token}}"

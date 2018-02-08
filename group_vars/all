@@ -2,7 +2,9 @@ demo:
   count: 1
   image: ami-9a562df2
   instance_type: t2.small
-  volume_size: 20
+  ebs:
+    volume_size: 20
+    name: blockchain_ebs
   node_tags:
     Name: DEV_DEMO
     Environment: DEVELOPMENT
