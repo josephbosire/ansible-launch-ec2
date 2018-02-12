@@ -1,0 +1,11 @@
+---
+- name: Create EBS Volumes
+  ec2_vol:
+    volume_size: "{{item.volume_size}}"
+    name: "{{item.name}}"
+    region: "{{aws_region}}"
+    zone: "{{aws_zone}}"
+    encrypted: yes
+    kms_key_id: "{{kms_key_id}}"
+  with_items: "{{ ebs_volumes }}"
+  

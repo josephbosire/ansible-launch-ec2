@@ -10,27 +10,52 @@
 - name: Create file dynamic_ips
   file: path="{{ansible_env.HOME}}/dynamic_ips_dev" state=touch
 
+- name: Gather facts about satoshi subnet
+  ec2_vpc_subnet_facts:
+    filters:
+      "tag:Name": "satoshi_subnet"
+    region: "{{aws_region}}"
+  register: subnet_facts
+
+- set_fact:
+    subnet_ids: "{{ subnet_facts.subnets|map(attribute='id')|list }}"
+- debug:
+    msg: "{{subnet_ids}}"
 - name: Launch Demo Server Instance
   ec2:
     exact_count: "{{demo.count}}"
+    assign_public_ip: "{{demo.assign_public_ip}}"
     count_tag: "{{demo.node_tags}}"
     image: "{{demo.image}}"
     instance_tags: "{{demo.node_tags}}"
     instance_type: "{{demo.instance_type}}"
     region: "{{aws_region}}"
     wait: yes
+    private_ip: "{{demo.private_ip}}"
+    vpc_subnet_id: "{{subnet_ids[0]}}"
     zone: "{{aws_zone}}"
   register: demo_server
 
-- name: Create EBS Volume
-  ec2_vol:
-    instance: "{{ item.id }}"
-    volume_size: "{{demo.ebs.volume_size}}"
-    name: "{{demo.ebs.name}}"
-    region: "{{aws_region}}"
+- name: Convert Instance to Unlimitted Type
+  command: 'aws ec2 modify-instance-credit-specification --region {{aws_region}} --instance-credit-specification "[{\"InstanceId\": \"{{item.id}}\",\"CpuCredits\": \"{{demo.CpuCredits}}\"}]"'
   with_items: "{{ demo_server.instances }}"
-  register: demo_ebs_vol
 
+- name: Gather facts about blockchain_ebs volume
+  ec2_vol_facts:
+    filters:
+      "tag:Name": blockchain_ebs
+    region: "{{aws_region}}"
+  register: ebs_vols
+
+- name: Attach EBS Volume
+  ec2_vol:
+    instance: "{{item.id}}"
+    id: "{{ebs_vols.volumes[0].id}}"
+    device_name: "/dev/sdf"
+    region: "{{aws_region}}"
+    name: blockchain_ebs
+    delete_on_termination: yes
+  with_items: "{{ demo_server.instances }}"
     
 - name: Refresh EC2 cache
   command: "{{playbook_dir}}/ec2.py --refresh-cache"

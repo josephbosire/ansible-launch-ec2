@@ -1,5 +1,7 @@
 ---
 - hosts: localhost
   roles:
+    - ec2-vpc
+    - ec2-ebs
     - ec2-instance
 

@@ -1,0 +1,22 @@
+---
+- name: Create Satoshi VPC 
+  ec2_vpc_net:
+    name: "{{item.name}}"
+    cidr_block: "{{item.cidr_block}}"
+    region: "{{aws_region}}"
+    tenancy: "{{item.tenancy}}"
+  with_items: "{{vpcs}}"
+  register: satoshi_vpc
+- name: Debug
+  debug:
+    msg: "{{satoshi_vpc.results}}"
+- name: Create Satoshi Subnet
+  ec2_vpc_subnet:
+    state: present
+    vpc_id: "{{satoshi_vpc.results.0.vpc.id}}"
+    cidr: "{{item.cidr}}"
+    resource_tags: "{{item.tags}}"
+    az: "{{aws_zone}}"
+  with_items: "{{vpc_subnets}}"
+  register: satoshi_subnets
+  

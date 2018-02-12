@@ -2,12 +2,19 @@ demo:
   count: 1
   image: ami-9a562df2
   instance_type: t2.small
-  ebs:
-    volume_size: 20
-    name: blockchain_ebs
+  assign_public_ip: no
+  private_ip: 10.10.0.5
   node_tags:
     Name: DEV_DEMO
     Environment: DEVELOPMENT
-    
+  CpuCredits: unlimited
+kms_key_id: <KMS_KEY_ID_HERE>
+ebs_volumes:
+  - {volume_size: 20, name: "blockchain_ebs"}
 aws_region: us-east-1
 aws_zone: us-east-1a
+
+vpcs:
+  - {name: "satoshi_vpc", tenancy: "default", cidr_block: "10.10.0.0/16"}
+vpc_subnets:
+  - {tags: {Name: "satoshi_subnet"},  cidr: "10.10.0.0/28"}
